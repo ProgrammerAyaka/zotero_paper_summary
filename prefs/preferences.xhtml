@@ -23,6 +23,38 @@
         <html:input type="password" preference="extensions.ai-summary.geminiKey" placeholder="AIza..." style="padding: 5px; width: 300px;" />
     </vbox>
 
+    <separator style="margin-top: 20px; margin-bottom: 5px;"/>
+    <label><html:h3 style="margin: 0;">📄 文本提取设置</html:h3></label>
+
+    <vbox style="margin-top: 12px;">
+        <hbox align="center">
+            <checkbox preference="extensions.ai-summary.truncate" label="启用文本截断（关闭则提取全文）" native="true"/>
+        </hbox>
+        <label style="color: gray; margin-top: 4px; margin-left: 2px;">关闭后将提取 PDF 全部文本，费用可能增加。</label>
+    </vbox>
+
+    <vbox style="margin-top: 12px;">
+        <label style="font-weight: bold; margin-bottom: 5px;">截断长度（字符数）:</label>
+        <html:input type="number" preference="extensions.ai-summary.truncateLength" min="1000" max="200000" step="1000" style="padding: 5px; width: 150px;" />
+        <label style="color: gray; margin-top: 4px;">启用截断时生效，默认 10000 字符（约 5000 中文字）。</label>
+    </vbox>
+
+    <separator style="margin-top: 20px; margin-bottom: 5px;"/>
+    <label><html:h3 style="margin: 0;">🔀 分段摘要模式</html:h3></label>
+
+    <vbox style="margin-top: 12px;">
+        <hbox align="center">
+            <checkbox preference="extensions.ai-summary.chunkMode" label="启用分段摘要（将全文分块分别总结后汇总）" native="true"/>
+        </hbox>
+        <label style="color: gray; margin-top: 4px; margin-left: 2px;">开启后忽略截断设置，对全文分块请求 LLM，最后合并为完整摘要。适合长篇论文。</label>
+    </vbox>
+
+    <vbox style="margin-top: 12px;">
+        <label style="font-weight: bold; margin-bottom: 5px;">每段字符数:</label>
+        <html:input type="number" preference="extensions.ai-summary.chunkSize" min="2000" max="50000" step="1000" style="padding: 5px; width: 150px;" />
+        <label style="color: gray; margin-top: 4px;">分段摘要时每块的大小，默认 8000 字符。请勿超过所选模型的上下文限制。</label>
+    </vbox>
+
     <vbox style="margin-top: 20px;">
         <label style="color: gray;">设置项会自动保存，直接关闭窗口即可生效。</label>
     </vbox>

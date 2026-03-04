@@ -102,12 +102,35 @@ async function handleMenuClick(window) {
         return;
     }
 
-    window.alert("正在提取 PDF 文本并请求大模型，这可能需要一点时间...");
+    const prefPrefix = "extensions.ai-summary.";
+    const model        = Zotero.Prefs.get(prefPrefix + "model",          true) || "deepseek";
+    const deepseekKey  = Zotero.Prefs.get(prefPrefix + "deepseekKey",    true) || "";
+    const geminiKey    = Zotero.Prefs.get(prefPrefix + "geminiKey",      true) || "";
+    const truncate     = Zotero.Prefs.get(prefPrefix + "truncate",       true) !== false;
+    const truncateLen  = parseInt(Zotero.Prefs.get(prefPrefix + "truncateLength", true)) || 10000;
+    const chunkMode    = Zotero.Prefs.get(prefPrefix + "chunkMode",      true) === true;
+    const chunkSize    = parseInt(Zotero.Prefs.get(prefPrefix + "chunkSize",    true)) || 8000;
+
+    if (model === "deepseek" && !deepseekKey) {
+        window.alert("未配置 DeepSeek API Key，请前往设置中配置！");
+        return;
+    }
+    if (model === "gemini" && !geminiKey) {
+        window.alert("未配置 Gemini API Key，请前往设置中配置！");
+        return;
+    }
+
+    const modeDesc = chunkMode
+        ? "分段摘要模式，将对全文分块依次请求 LLM 并汇总，耗时较长..."
+        : truncate
+            ? `普通模式，仅提取前 ${truncateLen} 个字符...`
+            : "全文模式，正在提取完整 PDF 文本...";
+    window.alert("正在提取 PDF 文本并请求大模型。\n\n当前模式：" + modeDesc + "\n\n请耐心等待，完成后会弹出提示。");
 
     let textContent = "";
     try {
         let file = await pdfItem.getFilePathAsync();
-        
+
         if (Zotero.PDFWorker) {
             try {
                 let { text } = await Zotero.PDFWorker.getFullText(pdfItem.id);
@@ -116,13 +139,13 @@ async function handleMenuClick(window) {
                 log("PDFWorker extraction failed: " + e.message);
             }
         }
-        
+
         if (!textContent && Zotero.PDF) {
             try {
                 textContent = await Zotero.PDF.getText(file);
             } catch (e) {}
         }
-        
+
         if (!textContent && Zotero.Fulltext && typeof Zotero.Fulltext.getIndexableContentAsync === 'function') {
             try {
                 let content = await Zotero.Fulltext.getIndexableContentAsync(pdfItem);
@@ -131,7 +154,7 @@ async function handleMenuClick(window) {
                 }
             } catch(e) {}
         }
-        
+
         if (!textContent && Zotero.Fulltext && Zotero.Fulltext.pdfToTextPath) {
             try {
                 let pdftotextParams = ["-enc", "UTF-8", "-nopgbrk", file, "-"];
@@ -149,28 +172,24 @@ async function handleMenuClick(window) {
         return;
     }
 
-    textContent = textContent.substring(0, 10000);
-
-    const prefPrefix = "extensions.ai-summary.";
-    const model = Zotero.Prefs.get(prefPrefix + "model", true) || "deepseek";
-    const deepseekKey = Zotero.Prefs.get(prefPrefix + "deepseekKey", true) || "";
-    const geminiKey = Zotero.Prefs.get(prefPrefix + "geminiKey", true) || "";
-
-    if (model === "deepseek" && !deepseekKey) {
-        window.alert("未配置 DeepSeek API Key，请前往设置中配置！");
-        return;
-    }
-    if (model === "gemini" && !geminiKey) {
-        window.alert("未配置 Gemini API Key，请前往设置中配置！");
-        return;
-    }
+    log("Extracted text length: " + textContent.length);
 
     try {
-        let summary = await callLLM(model, deepseekKey, geminiKey, textContent);
-        
+        let summary;
+
+        if (chunkMode) {
+            summary = await callLLMChunkMode(model, deepseekKey, geminiKey, textContent, chunkSize);
+        } else {
+            if (truncate) {
+                textContent = textContent.substring(0, truncateLen);
+            }
+            summary = await callLLM(model, deepseekKey, geminiKey, textContent);
+        }
+
         let note = new Zotero.Item('note');
         let formattedSummary = summary.replace(/\n/g, '<br/>');
-        note.setNote(`<h2>🤖 AI 论文总结</h2><p>${formattedSummary}</p>`);
+        const modeTag = chunkMode ? "（分段摘要）" : truncate ? `（截断前${truncateLen}字符）` : "（全文）";
+        note.setNote(`<h2>🤖 AI 论文总结 ${modeTag}</h2><p>${formattedSummary}</p>`);
         note.parentID = item.id;
         await note.saveTx();
 
@@ -181,9 +200,41 @@ async function handleMenuClick(window) {
     }
 }
 
+async function callLLMChunkMode(model, deepseekKey, geminiKey, fullText, chunkSize) {
+    const chunks = [];
+    for (let i = 0; i < fullText.length; i += chunkSize) {
+        chunks.push(fullText.substring(i, i + chunkSize));
+    }
+    log(`Chunk mode: ${chunks.length} chunks, chunkSize=${chunkSize}`);
+
+    const chunkSummaries = [];
+    for (let i = 0; i < chunks.length; i++) {
+        log(`Summarizing chunk ${i + 1}/${chunks.length}`);
+        const chunkPrompt =
+            `你是一个专业的学术助手。以下是一篇论文的第 ${i + 1}/${chunks.length} 段内容，` +
+            `请提炼这一段的核心要点（研究背景、方法、数据、结论等），用纯中文简洁输出，不超过500字：\n\n` +
+            chunks[i];
+        const partSummary = await callLLMRaw(model, deepseekKey, geminiKey, chunkPrompt);
+        chunkSummaries.push(`【第${i + 1}段要点】\n${partSummary}`);
+    }
+
+    log("Merging chunk summaries...");
+    const mergePrompt =
+        `你是一个专业的学术助手。以下是对一篇论文各段落的分段要点提炼，` +
+        `请综合以上所有要点，用纯中文写出完整的论文总结，` +
+        `涵盖研究背景、核心方法、主要结论和创新点，不要使用Markdown加粗等格式：\n\n` +
+        chunkSummaries.join("\n\n");
+    return await callLLMRaw(model, deepseekKey, geminiKey, mergePrompt);
+}
+
 async function callLLM(model, deepseekKey, geminiKey, text) {
-    const prompt = "你是一个专业的学术助手，请用纯中文详细总结这篇论文的研究背景、核心方法、主要结论和创新点。以下是论文正文的前10000字：\n\n" + text;
-    
+    const prompt =
+        "你是一个专业的学术助手，请用纯中文详细总结这篇论文的研究背景、核心方法、主要结论和创新点，" +
+        "不要使用Markdown加粗等影响排版的格式。以下是论文内容：\n\n" + text;
+    return await callLLMRaw(model, deepseekKey, geminiKey, prompt);
+}
+
+async function callLLMRaw(model, deepseekKey, geminiKey, prompt) {
     if (model === "deepseek") {
         let response = await fetch("https://api.deepseek.com/chat/completions", {
             method: "POST",
