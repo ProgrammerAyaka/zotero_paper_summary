@@ -1,6 +1,6 @@
-# 🤖 Zotero Paper Summary (zotero_paper_summary)
+# Zotero Paper Summary
 
-🚀 **让 AI 助你一秒读懂论文 —— 为 Zotero 7 量身定制的智能摘要插件。**
+**让 AI 助你一秒读懂论文 —— 为 Zotero 7 量身定制的智能摘要插件。**
 
 [![Version](https://img.shields.io/badge/Version-v1.2.0-blue.svg)](https://github.com/ProgrammerAyaka/zotero_paper_summary/releases)
 [![Zotero](https://img.shields.io/badge/Zotero-7%2B-red.svg)](https://www.zotero.org/)
@@ -8,7 +8,7 @@
 
 ---
 
-## 🌟 功能亮点
+## 功能亮点
 
 - **一键总结**：右键点击文献条目即可触发，无需手动复制粘贴。
 - **智能提取**：深度集成 Zotero 7 内置 PDF 解析引擎，精准提取全文核心文本。
@@ -19,7 +19,7 @@
 
 ---
 
-## 🛠️ 技术实现
+##  技术实现
 
 本插件基于 **Zotero 7 Bootstrapped** 架构开发，具备原生级别的响应速度与稳定性：
 
@@ -34,16 +34,16 @@
 
 ---
 
-## 🤖 支持模型
+## 支持模型
 
 | 模型名称 | 提供商 | 获取 API Key |
 | :--- | :--- | :--- |
-| **DeepSeek-Chat** | 深度求索 (DeepSeek) | [platform.deepseek.com](https://platform.deepseek.com) |
-| **Gemini 1.5 Pro** | Google AI | [aistudio.google.com](https://aistudio.google.com) |
+| **DeepSeek** | 深度求索 (DeepSeek) | [platform.deepseek.com](https://platform.deepseek.com) |
+| **Gemini** | Google AI | [aistudio.google.com](https://aistudio.google.com) |
 
 ---
 
-## 🚀 安装与使用
+## 安装与使用
 
 ### 1. 安装插件
 1. 前往 [Releases](https://github.com/ProgrammerAyaka/zotero_paper_summary/releases) 下载最新的 `.xpi` 文件。
@@ -70,11 +70,11 @@
 2. 在弹出菜单中选择 **「🤖 AI 总结论文」**。
 3. 等待完成后弹窗提示，摘要将以子便签形式出现在该条目下方。
 
-> 💡 分段摘要模式对长论文发起多次 LLM 请求，耗时约 1-3 分钟，请耐心等待。
+> 分段摘要模式对长论文发起多次 LLM 请求，耗时约 1-3 分钟，请耐心等待。
 
 ---
 
-## ⚙️ 设置说明
+## 设置说明
 
 | 设置项 | 默认值 | 说明 |
 | :--- | :--- | :--- |
@@ -88,7 +88,7 @@
 
 ---
 
-## 📂 项目结构
+##  项目结构
 
 ```text
 ├── manifest.json          # 插件元数据（Zotero 7 规范）
@@ -109,7 +109,7 @@
 
 ---
 
-## 🤝 贡献指南
+## 贡献指南
 
 我们欢迎任何形式的贡献！
 - **提交 Bug**：请通过 GitHub Issues 反馈遇到的问题。
@@ -118,8 +118,8 @@
 
 ---
 
-## 📄 开源协议
+##  开源协议
 
 本项目采用 [MIT License](LICENSE) 协议开源。
 
-Copyright (c) 2024 **ProgrammerAyaka**
+Copyright (c) 2026 **ProgrammerAyaka**
