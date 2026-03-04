@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "Zotero AI Summary",
+  "version": "1.1.2",
+  "description": "Zotero AI Summary Plugin",
+  "author": "ProgrammerAyaka",
+  "applications": {
+    "zotero": {
+      "id": "zotero-ai-summary@ProgrammerAyaka.github.io",
+      "update_url": "https://raw.githubusercontent.com/ProgrammerAyaka/zotero_paper_summary/main/update.json",
+      "strict_min_version": "7.0.0",
+      "strict_max_version": "8.0.*"
+    }
+  }
+}
