@@ -95,7 +95,7 @@
 ├── bootstrap.js           # 插件主逻辑（启动/关闭/菜单/PDF提取/LLM调用）
 ├── prefs.js               # 默认偏好项配置
 └── prefs/
-    └── preferences.xhtml  # 插件设置面板 UI 界面
+    └── preferences.xhtml  # 插件设置面板UI界面
 ```
 
 ---
